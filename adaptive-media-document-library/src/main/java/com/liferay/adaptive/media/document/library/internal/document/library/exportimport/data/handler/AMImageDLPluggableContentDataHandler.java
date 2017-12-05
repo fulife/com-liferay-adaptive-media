@@ -28,8 +28,11 @@ import com.liferay.adaptive.media.image.util.AMImageSerializer;
 import com.liferay.document.library.exportimport.data.handler.DLPluggableContentDataHandler;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Element;
 
@@ -145,8 +148,10 @@ public class AMImageDLPluggableContentDataHandler
 		String basePath = _getAMBasePath(
 			fileVersion, configurationUuidOptional.get());
 
-		try (InputStream inputStream = adaptiveMedia.getInputStream()) {
-			portletDataContext.addZipEntry(basePath + ".bin", inputStream);
+		if (portletDataContext.isPerformDirectBinaryImport()) {
+			try (InputStream inputStream = adaptiveMedia.getInputStream()) {
+				portletDataContext.addZipEntry(basePath + ".bin", inputStream);
+			}
 		}
 
 		portletDataContext.addZipEntry(
@@ -180,10 +185,48 @@ public class AMImageDLPluggableContentDataHandler
 			return null;
 		}
 
+		if (portletDataContext.isPerformDirectBinaryImport()) {
+			return _amImageSerializer.deserialize(
+				serializedAdaptiveMedia,
+				() -> portletDataContext.getZipEntryAsInputStream(
+					basePath + ".bin"));
+		}
+
+		Stream<AdaptiveMedia<AMImageProcessor>> adaptiveMediaStream = null;
+
+		try {
+			adaptiveMediaStream = _amImageFinder.getAdaptiveMediaStream(
+				amImageQueryBuilder -> amImageQueryBuilder.forFileVersion(
+					fileVersion
+				).forConfiguration(
+					amImageConfigurationEntry.getUUID()
+				).done());
+		}
+		catch (PortalException pe) {
+			StringBundler sb = new StringBundler();
+
+			sb.append("Unable to find adaptive media for file version ");
+			sb.append(fileVersion.getFileVersionId());
+			sb.append(" and configuration ");
+			sb.append(amImageConfigurationEntry.getUUID());
+
+			_log.error(sb.toString(), pe);
+
+			return null;
+		}
+
+		Optional<AdaptiveMedia<AMImageProcessor>> adaptiveMediaOptional =
+			adaptiveMediaStream.findFirst();
+
+		if (!adaptiveMediaOptional.isPresent()) {
+			return null;
+		}
+
+		AdaptiveMedia<AMImageProcessor> adaptiveMedia =
+			adaptiveMediaOptional.get();
+
 		return _amImageSerializer.deserialize(
-			serializedAdaptiveMedia,
-			() -> portletDataContext.getZipEntryAsInputStream(
-				basePath + ".bin"));
+			serializedAdaptiveMedia, () -> adaptiveMedia.getInputStream());
 	}
 
 	private void _importGeneratedMedia(
@@ -253,6 +296,9 @@ public class AMImageDLPluggableContentDataHandler
 			}
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		AMImageDLPluggableContentDataHandler.class);
 
 	@Reference
 	private AMImageConfigurationEntrySerializer
