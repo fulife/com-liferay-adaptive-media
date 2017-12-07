@@ -16,7 +16,6 @@ package com.liferay.adaptive.media.document.library.web.internal.counter.test;
 
 import com.liferay.adaptive.media.image.counter.AMImageCounter;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.blogs.constants.BlogsConstants;
 import com.liferay.blogs.kernel.model.BlogsEntry;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
@@ -110,9 +109,9 @@ public class DLAMImageCounterTest {
 		PortletFileRepositoryUtil.addPortletFileEntry(
 			_group1.getGroupId(), _user1.getUserId(),
 			BlogsEntry.class.getName(), RandomTestUtil.randomLong(),
-			BlogsConstants.SERVICE_NAME,
-			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, _getImageBytes(),
-			RandomTestUtil.randomString(), ContentTypes.IMAGE_JPEG, true);
+			"com.liferay.blogs", DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			_getImageBytes(), RandomTestUtil.randomString(),
+			ContentTypes.IMAGE_JPEG, true);
 
 		Assert.assertEquals(
 			1,
@@ -146,9 +145,9 @@ public class DLAMImageCounterTest {
 		PortletFileRepositoryUtil.addPortletFileEntry(
 			_group1.getGroupId(), _user1.getUserId(),
 			BlogsEntry.class.getName(), RandomTestUtil.randomLong(),
-			BlogsConstants.SERVICE_NAME,
-			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, _getImageBytes(),
-			RandomTestUtil.randomString(), ContentTypes.IMAGE_JPEG, true);
+			"com.liferay.blogs", DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			_getImageBytes(), RandomTestUtil.randomString(),
+			ContentTypes.IMAGE_JPEG, true);
 
 		Assert.assertEquals(
 			1,
