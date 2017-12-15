@@ -71,6 +71,10 @@ if (System.getenv('TRAVIS')) {
 			ignoreFailures = false
 		}
 
+		testIntegrationTomcat {
+			liferayHome = new File(getAMLiferayHome())
+		}
+
 		testIntegration {
 			ignoreFailures = false
 
@@ -168,6 +172,7 @@ if (System.getenv('TRAVIS')) {
 		'-p', '11311:11311',
 		'-v', "${rootDir}/build/jacoco:/jacoco",
 		'-v', "${getClientDeployDir()}:/liferay/deploy",
+		'-v', "${getClientTestDeployDir()}:/liferay/osgi/test",
 		'-d',
 		'--name', "com-liferay-adaptive-media",
 		getImageNameWithUserAndVersion()
@@ -176,8 +181,20 @@ if (System.getenv('TRAVIS')) {
 	}
 }
 
+def getAMLiferayHome() {
+	if (System.getenv('TRAVIS')) {
+		return "${rootDir}/portal"
+	} else {
+		return "${rootDir}/../bundles"
+	}
+}
+
 def getClientDeployDir() {
-	return "${rootDir}/${project.property('com.liferay.adaptive.media.deploy.dir')}"
+	return "${getAMLiferayHome()}/osgi/modules"
+}
+
+def getClientTestDeployDir() {
+	return "${getAMLiferayHome()}/osgi/test"
 }
 
 def getImageName() {
