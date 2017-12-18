@@ -14,7 +14,7 @@ before_script:
 
     - ./gradlew buildAppDockerImage
 
-    - ./gradlew deployDependencies
+    - ./gradlew deployDependencies copyTestModules
 
 script:
     - set pipefail
