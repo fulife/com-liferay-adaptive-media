@@ -26,7 +26,7 @@ deploy {
 }
 
 deployDependencies {
-	from configurations.testIntegrationRuntime - configurations.testIntegrationCompile - configurations.testRuntime - configurations.testCompile
+	from configurations.testIntegrationRuntime + configurations.testIntegrationCompile
 	include "*test.util*"
 	include "*aries*.jar"
 	include "*portal.test*.jar"
